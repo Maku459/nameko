@@ -1,7 +1,7 @@
 {
-  "name": "kayac-html5-starter",
+  "name": "nameko",
   "version": "0.0.0",
-  "description": "kayac-html5-starter development.",
+  "description": "nameko development.",
   "author": "Kayac Inc.",
   "license": "MIT",
   "scripts": {
