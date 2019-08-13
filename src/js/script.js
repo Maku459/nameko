@@ -1,10 +1,25 @@
-import { BASE_DIR } from '../constants.yml'
-import Sample from '@/lib/Sample';
+const wrapper = document.querySelector('.canvas');
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+wrapper.appendChild(renderer.domElement);
 
-const sample = new Sample({
-    name: 'world'
-});
+renderer.setSize( window.innerWidth, window.innerHeight );
 
-document.querySelector('.wrapper').addEventListener('click', () => {
-    console.log(`hello, ${sample.name}. Base directory is ${BASE_DIR}.`);
-});
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.set(0, 1, 5);
+const grid   = new THREE.GridHelper(10, 5);
+
+const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+const cube = new THREE.Mesh( geometry, material );
+
+scene.add(grid, cube);
+
+const loop = () => {
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render( scene, camera );
+    window.requestAnimationFrame( loop ); 
+}
+window.requestAnimationFrame( loop );
