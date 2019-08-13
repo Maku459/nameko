@@ -14,6 +14,14 @@ const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const cube = new THREE.Mesh( geometry, material );
 
+const loader = new THREE.GLTFLoader();
+const url = '/glb/kari.glb';
+loader.load(url, (data) => {
+    const gltf = data;
+    const object = gltf.scene;
+    scene.add(object);
+});
+
 scene.add(grid, cube);
 
 const loop = () => {
