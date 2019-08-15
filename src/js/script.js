@@ -20,10 +20,6 @@ const ground = new THREE.Mesh( gg, gm );
 ground.rotation.x = - Math.PI / 2;
 ground.position.y = -0.5;
 
-const axis = new THREE.AxisHelper(1000);
-axis.position.set(0,0,0);
-scene.add(axis);
-
 const light  = new THREE.AmbientLight(0xffffff, 1);
 
 const loader = new THREE.GLTFLoader();
@@ -37,38 +33,37 @@ loader.load(url, (data) => {
 
         const gltf = data;
         const nameko = gltf.scene.clone();
-        group.position.x = _.random(-7.0, 7.0);
+        group.position.x = Math.random() * 10 - 4;
         group.position.y = 0.2;
-        group.position.z = _.random(-3.5, 3.5);
-        group.rotation.y = _.random(0, 30);
+        group.position.z = Math.random() * 10 - 4;
+        group.rotation.y = Math.random() * 2 * Math.PI;
         group.interactive = true;
+        
         nameko.scale.x = 0.5;
         nameko.scale.y = 0.5;
         nameko.scale.z = 0.5;
         nameko.name = 'nameko';
         group.add(nameko);
 
-        const geometry = new THREE.BoxGeometry(0.7,2.0,0.7);
-        const material = new THREE.MeshLambertMaterial(
-            {
-                color: 0xE9546B, 
-                transparent: true, 
-                opacity: 0.5
-            });
+        const geometry = new THREE.BoxGeometry(0.8,2.0,0.8);
+        const material = new THREE.MeshLambertMaterial({
+            color: 0xE9546B, 
+            transparent: true, 
+            opacity: 0
+        });
         const hitcube = new THREE.Mesh( geometry, material );
         hitcube.position.set(nameko.position.x, nameko.position.y + 0.3, nameko.position.z);
         hitcube.name = 'hitcube';
         group.add(hitcube);
 
         scene.add(group);
+        TweenMax.from(group.scale, 2.0, {x: 0, y: 0, z: 0, ease: Power2.easeIn, delay: 1.0});
     } 
     hitcubes = _(scene.children)
         .map ((value, key, array) => value.getObjectByName('hitcube'))
         .compact()
         .value()
 });
-
-// function generateNameko(){}
 
 /* === 回転付加 === */
 const controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -79,7 +74,7 @@ controls.maxPolarAngle = Math.PI * 0.495;
 controls.autoRotate = false;
 controls.autoRotateSpeed = 1.0;
 
-/* === レイキャスティング === */
+/* === なめこ収穫 === */
 const raycaster = new THREE.Raycaster();
 // マウス座標管理用のベクトルを作成
 const mouse = new THREE.Vector2();
