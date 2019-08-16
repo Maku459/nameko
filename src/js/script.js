@@ -1,6 +1,5 @@
 import _ from 'lodash';
 
-
 /* === シーン準備 === */
 const wrapper = document.querySelector('.canvas');
 const renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -10,6 +9,15 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.gammaOutput = true;
 
 const scene = new THREE.Scene();
+
+let score = 0;
+const ui = document.querySelector('.ui');
+const p = document.createElement('p');
+p.textContent = score;
+ui.appendChild(p);
+
+const score_monitor = document.querySelector('.ui');
+score_monitor.appendChild(p);
 
 /* === カメラ・ライト === */
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -23,10 +31,9 @@ const ground = new THREE.Mesh( gg, gm );
 ground.rotation.x = - Math.PI / 2;
 ground.position.y = -0.5;
 
-/* === 回転付加 === */
+/* === 回転付加（開発者用） === */
 const controls = new THREE.OrbitControls( camera, renderer.domElement );
 controls.userPan = false;
-controls.userPanSpeed = 0.0;
 controls.maxDistance = 5000.0;
 controls.maxPolarAngle = Math.PI * 0.495;
 controls.autoRotate = false;
@@ -34,24 +41,25 @@ controls.autoRotateSpeed = 1.0;
 
 /* === なめこ生成 === */
 const loader = new THREE.GLTFLoader();
-const url = '/glb/nameko5.glb';
+const url_normal = '/glb/nameko5.glb';
+const url_rare = '/glb/nameko_rare.glb';
 
-let nameko_let;
+let normal_gltf;
+let rare_gltf;
 let hitcubes;
 
-const loadNameko = () => new Promise(resolve => {
+const loadGLTF = (url) => new Promise(resolve => {
     loader.load(url, resolve);
 });
 
-const generateNameko = () => {
+const generateNameko = (gltf) => {
     const group = new THREE.Group();
 
-    const gltf = nameko_let;
     const nameko = gltf.scene.clone();
-    group.position.x = Math.random() * 10 - 4;
+    group.position.x = _.random(-7.0, 7.0);
     group.position.y = 0.2;
-    group.position.z = Math.random() * 10 - 4;
-    group.rotation.y = Math.random() * 2 * Math.PI;
+    group.position.z = _.random(-3.5, 3.5);
+    group.rotation.y = _.random(-1.0, 1.0); //ラジアン
     group.interactive = true;
     
     nameko.scale.x = 0.5;
@@ -77,13 +85,20 @@ const generateNameko = () => {
 
 /* === 初期配置のなめこ読み込み === */
 
-loadNameko(nameko_let)
-    .then(data => {
-        nameko_let = data;
+Promise.all([
+    loadGLTF(url_normal),
+    loadGLTF(url_rare)
+]).then(data => {
+        normal_gltf = data[0];
+        rare_gltf = data[1];
     })
     .then(() => {
         for (var i = 0; i < 20; i ++) {
-            generateNameko();
+            if(_.random(100) === 0){
+                generateNameko(rare_gltf);
+            }else{
+                generateNameko(normal_gltf);
+            }
         }
         hitcubes = _(scene.children)
             .map ((value, key, array) => value.getObjectByName('hitcube'))
@@ -124,6 +139,10 @@ function intersect() {
 
     // ぶつかったオブジェクトに対してなんかする
     if ( intersects.length > 0 ) {
+        score ++;
+        p.textContent = score;
+        TweenMax.to(".ui", 0.1, {fontSize: 70});
+        TweenMax.to(".ui", 0.1, {fontSize: 50, delay: 0.1});
         TweenMax.to(intersect_nameko.scale, 0.5, {y: 1.0, ease: Power1.easeIn});
         TweenMax.to(intersect_nameko.position, 0.5, {y: 0.8, ease: Power1.easeIn});
         TweenMax.to(intersect_nameko.scale, 0.1, {y: 0.2, delay: 0.5});
@@ -133,7 +152,12 @@ function intersect() {
             y: 10, 
             delay: 1.1,
             onComplete: () => {
-                generateNameko();
+                scene.remove(intersect_nameko);
+                if(_.random(50) === 0){
+                    generateNameko(rare_gltf);
+                }else{
+                    generateNameko(normal_gltf);
+                }
                 hitcubes = _(scene.children)
                     .map ((value, key, array) => value.getObjectByName('hitcube'))
                     .compact()
